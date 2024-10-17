@@ -2,22 +2,18 @@ import json
 import boto3
 import logging
 
-# Configure logging
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Initialize the SQS client
 sqs = boto3.client('sqs')
 
-# Your SQS Queue URL
 QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/588738575076/Q1'
 
 def lambda_handler(event, context):
-    logger.info("Lambda function invoked.")  # New log entry at the start of the function
-    logger.info("Received event: " + json.dumps(event, indent=2))  # Log the event for debugging
+    logger.info("Lambda function invoked.")
+    logger.info("Received event: " + json.dumps(event, indent=2))
     
     try:
-        # Attempt to access the intent name
         intent_name = event['sessionState']['intent']['name']
         
         # Handle different intents
@@ -33,8 +29,7 @@ def lambda_handler(event, context):
             dining_time = slots['DiningTime']['value']['interpretedValue']
             num_people = slots['numPeople']['value']['interpretedValue']
             email = slots['Email']['value']['interpretedValue']
-
-            # Create the message to send to SQS
+            
             message = {
                 'Location': location,
                 'Cuisine': cuisine,
@@ -46,12 +41,10 @@ def lambda_handler(event, context):
             # Send the message to SQS
             send_to_sqs(message)
             
-            # Confirmation message for the user
             response_message = f"Thank you! You’ve requested {cuisine} cuisine in {location} for {num_people} people at {dining_time}. We will send suggestions to {email} shortly."
         else:
             response_message = "I'm still under development. Please come back later."
         
-        # Constructing the proper response structure for Lex V2
         response = {
             "sessionState": {
                 "dialogAction": {
@@ -91,7 +84,7 @@ def lambda_handler(event, context):
 def send_to_sqs(message):
     """Function to send the user's request to SQS"""
     try:
-        logger.info(f"Sending message to SQS: {message}")  # Log the message being sent
+        logger.info(f"Sending message to SQS: {message}")
         # Send message to SQS queue
         response = sqs.send_message(
             QueueUrl=QUEUE_URL,
