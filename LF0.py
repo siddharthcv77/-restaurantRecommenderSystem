@@ -2,39 +2,34 @@ import json
 import boto3
 import logging
 
-# Configure logging
+
 logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
-# Initialize the Lex client
 client = boto3.client('lexv2-runtime')
 
-# Lex bot configuration (adjust the botID, aliasID, and localeID as per your Lex bot)
 BOT_ID = 'LIUB5YGQMA'
 BOT_ALIAS_ID = 'TSTALIASID'
 LOCALE_ID = 'en_US'
 SESSION_ID = 'test-session'
 
-# Initialize DynamoDB resource
 dynamodb = boto3.resource('dynamodb')
-# table = dynamodb.Table('userSearchHistory')
 
-# Initialize SQS clients
 sqs = boto3.client('sqs')
-# Your SQS Queue URL
+
 QUEUE_URL = 'https://sqs.us-east-1.amazonaws.com/588738575076/Q1'
 
 # Function to get user history from DynamoDB
 def get_userSearchHistory(user_input):
     table = dynamodb.Table('userSearchHistory')
     response = table.get_item(Key={'Email': user_input})
-    return response.get('Item', None)  # Returns None if 'Item' doesn't exist
+    return response.get('Item', None)
     
 def send_to_sqs(message):
     """Function to send the user's request to SQS"""
     try:
-        logger.info(f"Sending message to SQS: {message}")  # Log the message being sent
-        # Send message to SQS queue
+        logger.info(f"Sending message to SQS: {message}")
+        
         response = sqs.send_message(
             QueueUrl=QUEUE_URL,
             MessageBody=json.dumps(message)
@@ -47,9 +42,9 @@ def lambda_handler(event, context):
     logger.info("Received event: " + json.dumps(event, indent=2))
 
     try:
-        # Extract user input from the event body or userMessage
+        
         if 'body' in event and event['body']:
-            # If 'body' exists, extract the message from 'messages'
+        
             body = json.loads(event['body'])
             if 'messages' in body and len(body['messages']) > 0:
                 user_input = body['messages'][0]['unstructured']['text']
@@ -61,19 +56,11 @@ def lambda_handler(event, context):
         else:
             raise KeyError('Expected message in the body or userMessage in the event')
 
-        # Extract email from the user input, assuming it's part of the input
-        # You can modify this depending on the structure of the input
-        # email = extract_email(user_input)  # Function to extract the email from the input text
-        
-        # if not email:
-        #     raise ValueError("Email not found in user input")
-
-        # Fetch user history using the extracted email
         userSearchHistory = get_userSearchHistory(user_input)
 
         # Check if userSearchHistory exists and send the message to SQS
         if userSearchHistory:
-            # Create the message to send to SQS
+            
             message = {
                 'Location': userSearchHistory['Location'],
                 'Cuisine': userSearchHistory['Cuisine'],
@@ -85,7 +72,6 @@ def lambda_handler(event, context):
             # Send the message to SQS
             send_to_sqs(message)
             
-            # Return response indicating no interaction with Lex
             return {
                 "statusCode": 200,
                 "headers": {
@@ -108,10 +94,8 @@ def lambda_handler(event, context):
             text=user_input
         )
 
-        # Extract Lex's response
         lex_message = lex_response['messages'][0]['content']
 
-        # Prepare the response with the dynamic message from Lex
         response = {
             "statusCode": 200,
             "headers": {
