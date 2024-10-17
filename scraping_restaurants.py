@@ -5,33 +5,28 @@ from datetime import datetime
 import os
 from requests_aws4auth import AWS4Auth
 
-# AWS credentials and region for signing
 region = 'us-east-1'
 credentials = boto3.Session().get_credentials()
 awsauth = AWS4Auth(credentials.access_key, credentials.secret_key, region, 'es', session_token=credentials.token)
 
-# Initialize DynamoDB resource
 dynamodb = boto3.resource('dynamodb')
 table = dynamodb.Table('yelp-restaurants')
 
-# Yelp API key from environment variables
 YELP_API_KEY = os.getenv('YELP_API_KEY')
 
-# Function to fetch restaurants from Yelp API
 def fetch_restaurants(cuisine, location="Manhattan", limit=50):
     url = "https://api.yelp.com/v3/businesses/search"
     headers = {
         "Authorization": f"Bearer {YELP_API_KEY}"
     }
     params = {
-        "categories": cuisine.lower(),  # Use the cuisine directly
+        "categories": cuisine.lower(),
         "location": location,
         "limit": limit
     }
     response = requests.get(url, headers=headers, params=params)
     return response.json()
 
-# Function to store data in DynamoDB
 def store_in_dynamodb(restaurant, cuisine):
     table.put_item(
         Item={
@@ -59,11 +54,9 @@ def store_in_elasticsearch(restaurant, cuisine):
     
     headers = {"Content-Type": "application/json"}
     
-    # Add your master username and password here
-    master_username = "siddharth"  # Replace with your actual username
-    master_password = "Sansid@22"  # Replace with your actual password
+    master_username = "siddharth"
+    master_password = "test@Password77"
 
-    # Use requests with HTTP Basic Authentication
     response = requests.put(es_url, json=payload, headers=headers, auth=(master_username, master_password))
     
     if response.status_code == 201:
@@ -71,18 +64,14 @@ def store_in_elasticsearch(restaurant, cuisine):
     else:
         print(f"Error storing {restaurant['name']} in Elasticsearch: {response.text}")
 
-
-# Main Lambda handler function
 def lambda_handler(event, context):
-    # List of cuisines to fetch
+
     cuisines = ["Chinese", "Italian", "Mexican"]
     
-    # Fetch and store restaurants for each cuisine
     for cuisine in cuisines:
         print(f"Fetching {cuisine} restaurants...")
         data = fetch_restaurants(cuisine)
         
-        # Check if response contains businesses
         if "businesses" in data:
             for restaurant in data['businesses']:
                 try:
