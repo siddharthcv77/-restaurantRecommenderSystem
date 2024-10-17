@@ -1,7 +1,7 @@
 # Restaurant Recommender System
 A serverless restaurant recommender system that provides personalized dining suggestions based on user preferences. Built using AWS Lambda, Amazon Lex, API Gateway, DynamoDB, and Elasticsearch. Integrates the Yelp API for restaurant data collection and uses AWS SES for automated email notifications.
 
-Features
+## Features
 
 Chatbot: Handles user conversations through Amazon Lex, collecting location, cuisine, and dining preferences.
 
@@ -14,7 +14,7 @@ Serverless Architecture: Uses AWS Lambda, API Gateway, and SQS for a scalable, m
 Automated Notifications: Sends personalized dining suggestions via email using AWS SES.
 
 
-Technologies Used
+## Technologies Used
 
 Frontend: HTML/CSS (Hosted on AWS S3)
 
@@ -27,7 +27,7 @@ External APIs: Yelp API, AWS SES
 Programming Language: Python (Lambda Functions), JavaScript (API integration)
 
 
-Architecture
+## Architecture
 
 The application follows a microservices architecture using serverless technologies:
 
